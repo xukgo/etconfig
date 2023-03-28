@@ -1,0 +1,20 @@
+<Nacos>
+    <EnvDefine>
+        <EtcdUrls>ETCD_URLS</EtcdUrls>
+        <EtcdNamespace>ETCD_NAMESPACE</EtcdNamespace>
+    </EnvDefine>
+    <Servers>
+        <Endpoint>172.16.2.13:2379</Endpoint>
+    </Servers>
+    <Local>
+        <AppName>app</AppName>
+        <Auth username="" password=""/>
+        <Timeout>3000</Timeout>
+        <BeatInterval>5000</BeatInterval>
+        <NameSpaceID>test_config</NameSpaceID>
+    </Local>
+    <!--  订阅  -->
+    <Subscribe>
+        <Var id="app1" handler="appHandler1"/>
+    </Subscribe>
+</Nacos>
