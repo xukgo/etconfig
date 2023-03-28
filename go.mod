@@ -1,4 +1,4 @@
-module etconfig
+module github.com/xukgo/etconfig
 
 go 1.17
 
