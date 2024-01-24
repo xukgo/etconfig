@@ -3,6 +3,7 @@ package etconfig
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestInitFromFIle(t *testing.T) {
@@ -13,6 +14,9 @@ func TestInitFromFIle(t *testing.T) {
 	err := repo.InitFromXmlPath("application.xml", vhs)
 	if err != nil {
 		t.FailNow()
+	}
+	for {
+		time.Sleep(time.Hour)
 	}
 }
 

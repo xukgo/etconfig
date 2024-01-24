@@ -4,17 +4,17 @@
         <EtcdNamespace>ETCD_NAMESPACE</EtcdNamespace>
     </EnvDefine>
     <Servers>
-        <Endpoint>172.16.2.13:2379</Endpoint>
+        <Endpoint>18.163.172.219:16018</Endpoint>
     </Servers>
     <Local>
         <AppName>app</AppName>
         <Auth username="" password=""/>
         <Timeout>3000</Timeout>
         <BeatInterval>5000</BeatInterval>
-        <NameSpaceID>test_config</NameSpaceID>
+        <NameSpaceID>config</NameSpaceID>
     </Local>
     <!--  订阅  -->
     <Subscribe>
-        <Var id="app1" handler="appHandler1"/>
+        <Var id="global" handler="appHandler1"/>
     </Subscribe>
 </Nacos>

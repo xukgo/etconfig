@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/xukgo/gsaber/utils/stringUtil"
+	"go.etcd.io/etcd/api/v3/mvccpb"
 	"io"
 	"log"
 	"os"
@@ -129,6 +130,8 @@ func (this *Repo) initParam() error {
 			subs.Handler(key, stringUtil.NoCopyBytes2String(content))
 		}
 	}
+
+	go this.watchSubs(this.config.Local.NameSpaceID, this.config.SubscribeVars)
 	return nil
 }
 
@@ -143,6 +146,56 @@ func (this *Repo) Publish(id, content string) error {
 		return err
 	}
 	return err
+}
+
+func (this *Repo) watchSubs(ns string, vars []SubscribeVar) {
+	servicePrefix := fmt.Sprintf("%s.", ns)
+
+	for {
+		watchChan := this.client.Watch(clientv3.WithRequireLeader(context.TODO()), servicePrefix, clientv3.WithPrefix())
+		if watchChan == nil {
+			time.Sleep(time.Second)
+			continue
+		}
+
+		for watchResponse := range watchChan {
+			this.updateByEvents(servicePrefix, vars, watchResponse.Events)
+		}
+	}
+}
+
+func (this *Repo) updateByEvents(prefix string, vars []SubscribeVar, events []*clientv3.Event) {
+	for _, event := range events {
+		switch event.Type {
+		case mvccpb.PUT:
+			tid := event.Kv.Key[len(prefix):]
+			selectVar := findVarFromVarsById(vars, tid)
+			if selectVar == nil {
+				break
+			}
+			selectVar.Handler(stringUtil.NoCopyBytes2String(event.Kv.Key), stringUtil.NoCopyBytes2String(event.Kv.Value))
+			break
+		case mvccpb.DELETE:
+			tid := event.Kv.Key[len(prefix):]
+			selectVar := findVarFromVarsById(vars, tid)
+			if selectVar == nil {
+				break
+			}
+			selectVar.Handler(stringUtil.NoCopyBytes2String(event.Kv.Key), "")
+			break
+		default:
+			break
+		}
+	}
+}
+
+func findVarFromVarsById(vars []SubscribeVar, tid []byte) *SubscribeVar {
+	for idx := range vars {
+		if vars[idx].ID == stringUtil.NoCopyBytes2String(tid) {
+			return &vars[idx]
+		}
+	}
+	return nil
 }
 
 /*
