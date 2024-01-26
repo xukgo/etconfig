@@ -38,26 +38,7 @@ func (this *Repo) InitFromXmlPath(path string, matchHandlers []MatchVarHandler) 
 }
 
 func (this *Repo) InitFromReader(srcReader io.Reader, matchHandlers []MatchVarHandler) error {
-	var reader *bufio.Reader
-	reader = bufio.NewReader(srcReader)
-	buff := make([]byte, 0, 4096)
-	if reader == nil {
-		return fmt.Errorf("reader is invalid nil")
-	}
-	for {
-		line, err := reader.ReadBytes('\n')
-		if err == io.EOF {
-			buff = append(buff, line...)
-			break
-		}
-		if err != nil {
-			return err
-		}
-		buff = append(buff, line...)
-	}
-
-	conf := new(ConfRoot)
-	err := conf.FillWithXml(buff)
+	conf, err := ConfigUnmarshalFromReader(srcReader)
 	if err != nil {
 		return err
 	}
@@ -74,6 +55,32 @@ func (this *Repo) InitFromReader(srcReader io.Reader, matchHandlers []MatchVarHa
 	this.config = conf
 
 	return this.initParam()
+}
+func ConfigUnmarshalFromReader(srcReader io.Reader) (*ConfRoot, error) {
+	var reader *bufio.Reader
+	reader = bufio.NewReader(srcReader)
+	buff := make([]byte, 0, 4096)
+	if reader == nil {
+		return nil, fmt.Errorf("reader is invalid nil")
+	}
+	for {
+		line, err := reader.ReadBytes('\n')
+		if err == io.EOF {
+			buff = append(buff, line...)
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		buff = append(buff, line...)
+	}
+
+	conf := new(ConfRoot)
+	err := conf.FillWithXml(buff)
+	if err != nil {
+		return nil, err
+	}
+	return conf, nil
 }
 
 func fillHandler(conf *ConfRoot, handlers []MatchVarHandler) error {
