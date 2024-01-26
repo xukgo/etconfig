@@ -33,9 +33,9 @@ func (this *ConfRoot) CheckValid() string {
 	if len(errMsg) > 0 {
 		return errMsg
 	}
-	if len(this.Endpoints) == 0 {
-		return "Endpoint config is empty"
-	}
+	//if len(this.Endpoints) == 0 {
+	//	return "Endpoint config is empty"
+	//}
 	if len(this.SubscribeVars) == 0 {
 		return "Subscribe Vars is empty"
 	}
