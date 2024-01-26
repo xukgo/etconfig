@@ -2,6 +2,7 @@ package etconfig
 
 import (
 	"encoding/xml"
+	"github.com/xukgo/gsaber/utils/arrayUtil"
 	"os"
 	"strings"
 )
@@ -72,6 +73,7 @@ func (this *ConfRoot) FillWithXml(xmlContents []byte) error {
 		namespace := os.Getenv(this.EnvDefine.EtcdNamespace)
 		this.Local.NameSpaceID = namespace
 	}
+	this.Endpoints = arrayUtil.StringsTrimSpaceFilterEmpty(this.Endpoints)
 	return nil
 }
 
