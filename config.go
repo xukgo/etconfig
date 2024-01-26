@@ -54,6 +54,7 @@ func (this *ConfRoot) FillWithXml(xmlContents []byte) error {
 	if err != nil {
 		return err
 	}
+	this.Endpoints = arrayUtil.StringsTrimSpaceFilterEmpty(this.Endpoints)
 
 	if len(this.EnvDefine.EtcdUrls) == 0 {
 		return nil
@@ -63,17 +64,11 @@ func (this *ConfRoot) FillWithXml(xmlContents []byte) error {
 		return nil
 	}
 	sarr := strings.Split(urlstrs, ",")
-
-	this.Endpoints = make([]string, 0, len(sarr))
-	for _, str := range sarr {
-		str = strings.TrimSpace(str)
-		this.Endpoints = append(this.Endpoints, str)
-	}
+	sarr = arrayUtil.StringsTrimSpaceFilterEmpty(sarr)
 	if len(this.EnvDefine.EtcdNamespace) > 0 && this.Local != nil {
 		namespace := os.Getenv(this.EnvDefine.EtcdNamespace)
 		this.Local.NameSpaceID = namespace
 	}
-	this.Endpoints = arrayUtil.StringsTrimSpaceFilterEmpty(this.Endpoints)
 	return nil
 }
 
