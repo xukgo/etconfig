@@ -16,13 +16,22 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
+type PredefEndpoint struct {
+	Endpoints []string
+	UserName  string
+	Password  string
+}
 type Repo struct {
 	locker *sync.RWMutex
 	config *ConfRoot
 	//localDict map[string]string
-	client *clientv3.Client //etcd客户端
+	client         *clientv3.Client //etcd客户端
+	predefEndpoint *PredefEndpoint
 }
 
+func (this *Repo) WithPredefEndpoint(s *PredefEndpoint) {
+	this.predefEndpoint = s
+}
 func (this *Repo) FormatConfigDescription() string {
 	str := fmt.Sprintf("server:%s;", this.config.FormatEndpoints())
 	return str
@@ -53,6 +62,11 @@ func (this *Repo) InitFromReader(srcReader io.Reader, matchHandlers []MatchVarHa
 	this.locker = new(sync.RWMutex)
 	//this.localDict = make(map[string]string)
 	this.config = conf
+	if this.predefEndpoint != nil {
+		this.config.Endpoints = this.predefEndpoint.Endpoints
+		this.config.Local.Authorization.UserName = this.predefEndpoint.UserName
+		this.config.Local.Authorization.Password = this.predefEndpoint.Password
+	}
 
 	return this.initParam()
 }
