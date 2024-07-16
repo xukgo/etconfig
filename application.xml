@@ -12,6 +12,7 @@
         <Timeout>3000</Timeout>
         <BeatInterval>5000</BeatInterval>
         <NameSpaceID>config</NameSpaceID>
+<!--        <Tls ca="ca.pem" cert="client.pem" key="client.key"/>-->
     </Local>
     <!--  订阅  -->
     <Subscribe>

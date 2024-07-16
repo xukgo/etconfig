@@ -3,7 +3,10 @@ package etconfig
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"github.com/xukgo/gsaber/utils/fileUtil"
 	"github.com/xukgo/gsaber/utils/stringUtil"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	"io"
@@ -119,6 +122,7 @@ func findHandlerByName(handlers []MatchVarHandler, name string) func(dataId, dat
 }
 
 func (this *Repo) initParam() error {
+	var err error
 	if this.config == nil {
 		return fmt.Errorf("conf is nil")
 	}
@@ -128,12 +132,17 @@ func (this *Repo) initParam() error {
 	//	procs = 4
 	//}
 
-	var err error
+	tlsConfig, err := this.initTlsConfig()
+	if err != nil {
+		return err
+	}
+
 	this.client, err = clientv3.New(clientv3.Config{
 		Username:    this.config.Local.Authorization.UserName,
 		Password:    this.config.Local.Authorization.Password,
 		Endpoints:   this.config.Endpoints,
 		DialTimeout: time.Duration(this.config.Local.Timeout) * time.Second,
+		TLS:         tlsConfig,
 	})
 	if err != nil {
 		return err
@@ -154,6 +163,36 @@ func (this *Repo) initParam() error {
 
 	go this.watchSubs(this.config.Local.NameSpaceID, this.config.SubscribeVars)
 	return nil
+}
+
+func (this *Repo) initTlsConfig() (*tls.Config, error) {
+	tlsConf := this.config.Local.ClientTls
+	if tlsConf == nil {
+		return nil, nil
+	}
+	// 加载CA证书
+	caCert, err := os.ReadFile(fileUtil.GetAbsUrl(tlsConf.CaFilePath))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CA cert: %v", err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	if !caCertPool.AppendCertsFromPEM(caCert) {
+		return nil, fmt.Errorf("failed to append CA cert to pool")
+	}
+
+	// 加载客户端证书和密钥
+	clientCert, err := tls.LoadX509KeyPair(fileUtil.GetAbsUrl(tlsConf.CertFilePath), fileUtil.GetAbsUrl(tlsConf.KeyFilePath))
+	if err != nil {
+		return nil, fmt.Errorf("failed to load client cert and key: %v", err)
+	}
+	// 手动创建 tls.Config
+	tlsConfig := &tls.Config{
+		Certificates:       []tls.Certificate{clientCert},
+		RootCAs:            caCertPool,
+		InsecureSkipVerify: false,
+	}
+	return tlsConfig, nil
 }
 
 func (this *Repo) Publish(id, content string) error {

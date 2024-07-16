@@ -83,6 +83,13 @@ type LocalConf struct {
 	Timeout       int                 `xml:"Timeout"`      //请求超时ms
 	BeatInterval  int                 `xml:"BeatInterval"` //和服务器的心跳间隔ms
 	Authorization ClientAuthorization `xml:"Auth"`         //
+	ClientTls     *ClientTlsConfig    `xml:"Tls"`          //
+}
+
+type ClientTlsConfig struct {
+	CaFilePath   string `xml:"ca,attr"`
+	CertFilePath string `xml:"cert,attr"`
+	KeyFilePath  string `xml:"key,attr"`
 }
 
 type ClientAuthorization struct {
