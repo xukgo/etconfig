@@ -136,14 +136,18 @@ func (this *Repo) initParam() error {
 	if err != nil {
 		return err
 	}
-
-	this.client, err = clientv3.New(clientv3.Config{
+	clicfg := clientv3.Config{
 		Username:    this.config.Local.Authorization.UserName,
 		Password:    this.config.Local.Authorization.Password,
 		Endpoints:   this.config.Endpoints,
 		DialTimeout: time.Duration(this.config.Local.Timeout) * time.Second,
 		TLS:         tlsConfig,
-	})
+		//DialOptions: []grpc.DialOption{
+		//	grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)),
+		//},
+	}
+
+	this.client, err = clientv3.New(clicfg)
 	if err != nil {
 		return err
 	}
@@ -186,11 +190,52 @@ func (this *Repo) initTlsConfig() (*tls.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load client cert and key: %v", err)
 	}
+
+	// Custom CA validation logic to skip IP SAN check
+	customVerify := func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
+		cert, err := x509.ParseCertificate(rawCerts[0])
+		if err != nil {
+			return err
+		}
+
+		intermediates := x509.NewCertPool()
+		for _, ic := range rawCerts[1:] {
+			intermediateCert, err := x509.ParseCertificate(ic)
+			if err != nil {
+				return err
+			}
+			intermediates.AddCert(intermediateCert)
+		}
+
+		opts := x509.VerifyOptions{
+			Roots:         caCertPool,
+			Intermediates: intermediates,
+		}
+
+		chains, err := cert.Verify(opts)
+		if err != nil {
+			return err
+		}
+
+		// Optional: Further verify certificate attributes here
+		// For example, verifying the Common Name
+		for _, chain := range chains {
+			for _, c := range chain {
+				if !strings.HasPrefix(c.Subject.CommonName, "etcd") {
+					return fmt.Errorf("unexpected common name: %s", c.Subject.CommonName)
+				}
+			}
+		}
+
+		return nil
+	}
+
 	// 手动创建 tls.Config
 	tlsConfig := &tls.Config{
-		Certificates:       []tls.Certificate{clientCert},
-		RootCAs:            caCertPool,
-		InsecureSkipVerify: false,
+		Certificates:          []tls.Certificate{clientCert},
+		RootCAs:               caCertPool,
+		InsecureSkipVerify:    true, // Skip the default verification
+		VerifyPeerCertificate: customVerify,
 	}
 	return tlsConfig, nil
 }

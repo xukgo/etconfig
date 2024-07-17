@@ -4,15 +4,15 @@
         <EtcdNamespace>ETCD_NAMESPACE</EtcdNamespace>
     </EnvDefine>
     <Servers>
-        <Endpoint>18.163.172.219:16018</Endpoint>
+        <Endpoint>xxxxxxxxx:16018</Endpoint>
     </Servers>
     <Local>
         <AppName>app</AppName>
-        <Auth username="" password=""/>
+<!--        <Auth username="" password=""/>-->
         <Timeout>3000</Timeout>
         <BeatInterval>5000</BeatInterval>
-        <NameSpaceID>config</NameSpaceID>
-<!--        <Tls ca="ca.pem" cert="client.pem" key="client.key"/>-->
+        <NameSpaceID>/config</NameSpaceID>
+        <Tls ca="cert/ca-etcd.pem" cert="cert/client-etcd.pem" key="cert/client-etcd.key"/>
     </Local>
     <!--  订阅  -->
     <Subscribe>

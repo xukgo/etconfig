@@ -3,3 +3,5 @@
 *\.tar
 *.log
 *.test
+cert/
+Test*.test
