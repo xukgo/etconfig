@@ -4,7 +4,7 @@
         <EtcdNamespace>ETCD_NAMESPACE</EtcdNamespace>
     </EnvDefine>
     <Servers>
-        <Endpoint>xxxxxxxxx:16018</Endpoint>
+        <Endpoint>xxxxxxx:16018</Endpoint>
     </Servers>
     <Local>
         <AppName>app</AppName>

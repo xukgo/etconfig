@@ -140,11 +140,8 @@ func (this *Repo) initParam() error {
 		Username:    this.config.Local.Authorization.UserName,
 		Password:    this.config.Local.Authorization.Password,
 		Endpoints:   this.config.Endpoints,
-		DialTimeout: time.Duration(this.config.Local.Timeout) * time.Second,
+		DialTimeout: time.Duration(this.config.Local.Timeout) * time.Millisecond,
 		TLS:         tlsConfig,
-		//DialOptions: []grpc.DialOption{
-		//	grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)),
-		//},
 	}
 
 	this.client, err = clientv3.New(clicfg)
@@ -154,7 +151,9 @@ func (this *Repo) initParam() error {
 
 	for _, subs := range this.config.SubscribeVars {
 		key := fmt.Sprintf("%s.%s", this.config.Local.NameSpaceID, subs.ID)
-		getResponse, err := this.client.Get(context.TODO(), key)
+		tctx, cancel := context.WithTimeout(context.TODO(), time.Duration(this.config.Local.Timeout)*time.Millisecond)
+		getResponse, err := this.client.Get(tctx, key)
+		cancel()
 		if err != nil {
 			log.Printf("client get error:%s;%s\n", key, err.Error())
 			return err
