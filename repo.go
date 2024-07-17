@@ -215,16 +215,17 @@ func (this *Repo) initTlsConfig() (*tls.Config, error) {
 		if err != nil {
 			return err
 		}
+		_ = chains
 
 		// Optional: Further verify certificate attributes here
 		// For example, verifying the Common Name
-		for _, chain := range chains {
-			for _, c := range chain {
-				if !strings.HasPrefix(c.Subject.CommonName, "etcd") {
-					return fmt.Errorf("unexpected common name: %s", c.Subject.CommonName)
-				}
-			}
-		}
+		//for _, chain := range chains {
+		//	for _, c := range chain {
+		//		if !strings.HasPrefix(c.Subject.CommonName, "etcd") {
+		//			return fmt.Errorf("unexpected common name: %s", c.Subject.CommonName)
+		//		}
+		//	}
+		//}
 
 		return nil
 	}
